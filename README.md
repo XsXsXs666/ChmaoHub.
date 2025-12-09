@@ -1,2 +1,2 @@
-# ChmaoHub.
+# ChmaoHub
 hi.
