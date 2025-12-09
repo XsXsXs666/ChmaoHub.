@@ -1,459 +1,422 @@
--- Chmao脚本中心UI（最终修复版）
-local UIS = game:GetService("UserInputService")
-local RS = game:GetService("RunService")
-local Players = game:GetService("Players")
-local LP = Players.LocalPlayer
+local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
 
--- 创建主UI
-local Main = Instance.new("ScreenGui")
-Main.Name = "ChmaoScriptUI"
-Main.ResetOnSpawn = false
-Main.Parent = game.CoreGui
+WindUI:Localization({
+    Enabled = true,
+    Prefix = "loc:",
+    DefaultLanguage = "en",
+    Translations = {
+        ["ru"] = {
+            ["WINDUI_EXAMPLE"] = "WindUI Пример",
+            ["WELCOME"] = "Добро пожаловать в WindUI!",
+            ["LIB_DESC"] = "Библиотека для создания красивых интерфейсов",
+            ["SETTINGS"] = "Настройки",
+            ["APPEARANCE"] = "Внешний вид",
+            ["FEATURES"] = "Функционал",
+            ["UTILITIES"] = "Инструменты",
+            ["UI_ELEMENTS"] = "UI Элементы",
+            ["CONFIGURATION"] = "Конфигурация",
+            ["SAVE_CONFIG"] = "Сохранить конфигурацию",
+            ["LOAD_CONFIG"] = "Загрузить конфигурацию",
+            ["THEME_SELECT"] = "Выберите тему",
+            ["TRANSPARENCY"] = "Прозрачность окна"
+        },
+        ["en"] = {
+            ["WINDUI_EXAMPLE"] = "WindUI Example",
+            ["WELCOME"] = "Welcome to WindUI!",
+            ["LIB_DESC"] = "Beautiful UI library for Roblox",
+            ["SETTINGS"] = "Settings",
+            ["APPEARANCE"] = "Appearance",
+            ["FEATURES"] = "Features",
+            ["UTILITIES"] = "Utilities",
+            ["UI_ELEMENTS"] = "UI Elements",
+            ["CONFIGURATION"] = "Configuration",
+            ["SAVE_CONFIG"] = "Save Configuration",
+            ["LOAD_CONFIG"] = "Load Configuration",
+            ["THEME_SELECT"] = "Select Theme",
+            ["TRANSPARENCY"] = "Window Transparency"
+        }
+    }
+})
 
--- 主框架
-local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 500, 0, 300)
-Frame.Position = UDim2.new(0.5, -250, 0.5, -150)
-Frame.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-Frame.BackgroundTransparency = 0.15
-Frame.BorderSizePixel = 0
-Frame.Active = true
-Frame.Visible = false
-Frame.Parent = Main
+WindUI.TransparencyValue = 0.2
+WindUI:SetTheme("Dark")
 
--- 添加圆角
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 8)
-UICorner.Parent = Frame
-
--- 顶部栏
-local TopBar = Instance.new("Frame")
-TopBar.Size = UDim2.new(1, 0, 0, 32)
-TopBar.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-TopBar.BorderSizePixel = 0
-TopBar.Parent = Frame
-
-local TopBarCorner = Instance.new("UICorner")
-TopBarCorner.CornerRadius = UDim.new(0, 8)
-TopBarCorner.Parent = TopBar
-
--- 标题文字
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(0, 200, 1, 0)
-Title.Position = UDim2.new(0.5, -100, 0, 0)
-Title.Text =     "CHUOMAO SCRIPT"
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 18
-Title.TextColor3 = Color3.fromRGB(200, 200, 255)
-Title.BackgroundTransparency = 1
-Title.Parent = TopBar
-
--- 彩色渐变效果
-coroutine.wrap(function()
-    while task.wait(0.05) do
-        local t = tick() * 1.5
-        Title.TextColor3 = Color3.new(
-            0.7 + 0.3 * math.sin(t),
-            0.7 + 0.3 * math.sin(t + 2),
-            0.7 + 0.3 * math.sin(t + 4)
-        )
+local function gradient(text, startColor, endColor)
+    local result = ""
+    for i = 1, #text do
+        local t = (i - 1) / (#text - 1)
+        local r = math.floor((startColor.R + (endColor.R - startColor.R) * t) * 255)
+        local g = math.floor((startColor.G + (endColor.G - startColor.G) * t) * 255)
+        local b = math.floor((startColor.B + (endColor.B - startColor.B) * t) * 255)
+        result = result .. string.format('<font color="rgb(%d,%d,%d)">%s</font>', r, g, b, text:sub(i, i))
     end
-end)()
-
--- 左侧导航栏
-local Sidebar = Instance.new("Frame")
-Sidebar.Size = UDim2.new(0, 100, 1, -32)
-Sidebar.Position = UDim2.new(0, 0, 0, 32)
-Sidebar.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
-Sidebar.BackgroundTransparency = 0.2
-Sidebar.BorderSizePixel = 0
-Sidebar.Parent = Frame
-
--- 创建页签按钮（缩小尺寸）
-local TabBtns = {}
-local function createTab(name, order)
-    local btn = Instance.new("TextButton")
-    btn.Name = "Tab_"..name
-    btn.Size = UDim2.new(0.9, 0, 0, 30) -- 缩小高度
-    btn.Position = UDim2.new(0.05, 0, 0, (order-1)*36 + 8) -- 调整间距
-    btn.BackgroundColor3 = Color3.fromRGB(65, 65, 85)
-    btn.TextColor3 = Color3.fromRGB(220, 220, 255)
-    btn.Font = Enum.Font.GothamMedium
-    btn.Text = name
-    btn.TextSize = 12 -- 缩小字体
-    btn.AutoButtonColor = false
-    btn.Parent = Sidebar
-    
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 6)
-    btnCorner.Parent = btn
-    
-    btn.MouseEnter:Connect(function()
-        btn.BackgroundColor3 = Color3.fromRGB(85, 85, 105)
-    end)
-    
-    btn.MouseLeave:Connect(function()
-        btn.BackgroundColor3 = Color3.fromRGB(65, 65, 85)
-    end)
-    
-    TabBtns[name..order] = btn
-    return btn
+    return result
 end
 
--- 创建页签
-local infoTab = createTab("信息", 1)
-local func1Tab = createTab("功能1", 2)
-local func2Tab = createTab("功能2", 3)
-local func3Tab = createTab("功能3", 4)
+WindUI:Popup({
+    Title = gradient("WindUI Demo", Color3.fromHex("#6A11CB"), Color3.fromHex("#2575FC")),
+    Icon = "sparkles",
+    Content = "loc:LIB_DESC",
+    Buttons = {
+        {
+            Title = "Get Started",
+            Icon = "arrow-right",
+            Variant = "Primary",
+            Callback = function() end
+        }
+    }
+})
 
--- 主内容区域
-local ContentFrame = Instance.new("Frame")
-ContentFrame.Size = UDim2.new(1, -100, 1, -32)
-ContentFrame.Position = UDim2.new(0, 100, 0, 32)
-ContentFrame.BackgroundTransparency = 1
-ContentFrame.Parent = Frame
-
--- 信息页
-local InfoPage = Instance.new("Frame")
-InfoPage.Size = UDim2.new(1, 0, 1, 0)
-InfoPage.BackgroundTransparency = 1
-InfoPage.Visible = true
-InfoPage.Parent = ContentFrame
-
--- 欢迎信息
-local Welcome = Instance.new("TextLabel")
-Welcome.Size = UDim2.new(1, -20, 0, 40)
-Welcome.Position = UDim2.new(0, 10, 0, 10)
-Welcome.Text = "欢迎使用臭猫脚本"
-Welcome.TextColor3 = Color3.fromRGB(200, 200, 255)
-Welcome.TextSize = 24
-Welcome.Font = Enum.Font.GothamBold
-Welcome.BackgroundTransparency = 1
-Welcome.Parent = InfoPage
-
--- 实时时间
-local TimeLabel = Instance.new("TextLabel")
-TimeLabel.Size = UDim2.new(1, -20, 0, 30)
-TimeLabel.Position = UDim2.new(0, 10, 0, 50)
-TimeLabel.Text = os.date("%Y-%m-%d %H:%M:%S")
-TimeLabel.TextColor3 = Color3.fromRGB(180, 180, 220)
-TimeLabel.TextSize = 16
-TimeLabel.Font = Enum.Font.Gotham
-TimeLabel.BackgroundTransparency = 1
-TimeLabel.Parent = InfoPage
-
-coroutine.wrap(function()
-    while task.wait(1) do
-        TimeLabel.Text = os.date("%Y-%m-%d %H:%M:%S")
-    end
-end)()
-
--- 联系信息
-local ContactLabel = Instance.new("TextLabel")
-ContactLabel.Size = UDim2.new(1, -20, 0, 80)
-ContactLabel.Position = UDim2.new(0, 10, 0, 90)
-ContactLabel.Text = "QQ群: 962873051\n作者: 2563684259\n更新时间: 2025年8月16日"
-ContactLabel.TextColor3 = Color3.fromRGB(170, 170, 200)
-ContactLabel.TextSize = 14
-ContactLabel.Font = Enum.Font.Gotham
-ContactLabel.TextYAlignment = Enum.TextYAlignment.Top
-ContactLabel.BackgroundTransparency = 1
-ContactLabel.Parent = InfoPage
-
--- 功能页1
-local FeaturePage1 = Instance.new("ScrollingFrame")
-FeaturePage1.Size = UDim2.new(1, 0, 1, 0)
-FeaturePage1.BackgroundTransparency = 1
-FeaturePage1.ScrollBarThickness = 6
-FeaturePage1.Visible = false
-FeaturePage1.Parent = ContentFrame
-
--- 功能按钮生成器（缩小尺寸）
-local function createFeatureButton(text, yPos)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.9, 0, 0, 32) -- 缩小高度
-    btn.Position = UDim2.new(0.05, 0, 0, yPos)
-    btn.BackgroundColor3 = Color3.fromRGB(70, 70, 100)
-    btn.TextColor3 = Color3.fromRGB(240, 240, 255)
-    btn.Font = Enum.Font.GothamMedium
-    btn.Text = text
-    btn.TextSize = 14 -- 缩小字体
-    btn.AutoButtonColor = false
-    btn.Parent = FeaturePage1
-    
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 6)
-    btnCorner.Parent = btn
-    
-    btn.MouseEnter:Connect(function()
-        btn.BackgroundColor3 = Color3.fromRGB(90, 90, 130)
-    end)
-    
-    btn.MouseLeave:Connect(function()
-        btn.BackgroundColor3 = Color3.fromRGB(70, 70, 100)
-    end)
-    
-    return btn
-end
-
--- 创建功能按钮（调整间距）
-local speedBtn = createFeatureButton("人物速度加速", 10)
-local jumpBtn = createFeatureButton("超级跳跃", 50)
-local infJumpBtn = createFeatureButton("无限跳跃", 90)
-local noclipBtn = createFeatureButton("穿墙模式", 130)
-local flyBtn = createFeatureButton("飞行模式", 170)
-
--- 修复点击问题的功能实现
-local function safeConnect(button, action)
-    local debounce = false
-    local function safeAction()
-        if not debounce then
-            debounce = true
-            action()
-            task.wait(0.1)
-            debounce = false
+local Window = WindUI:CreateWindow({
+    Title = "loc:WINDUI_EXAMPLE",
+    Icon = "palette",
+    Author = "loc:WELCOME",
+    Folder = "WindUI_Example",
+    Size = UDim2.fromOffset(700, 500),
+    Theme = "Dark",
+    -- Background = WindUI:Gradient({
+    --     ["0"] = { Color = Color3.fromHex("#0f0c29"), Transparency = 1 },
+    --     ["100"] = { Color = Color3.fromHex("#302b63"), Transparency = 0.9 },
+    -- }, {
+    --     Rotation = 45,
+    -- }),
+    --Background = "video:https://cdn.discordapp.com/attachments/1337368451865645096/1402703845657673878/VID_20250616_180732_158.webm?ex=68958a01&is=68943881&hm=164c5b04d1076308b38055075f7eb0653c1d73bec9bcee08e918a31321fe3058&",
+    User = {
+        Enabled = true,
+        Anonymous = true,
+        Callback = function()
+            WindUI:Notify({
+                Title = "User Profile",
+                Content = "User profile clicked!",
+                Duration = 3
+            })
         end
-    end
-    
-    button.MouseButton1Click:Connect(safeAction)
-    button.TouchTap:Connect(safeAction)
-end
+    },
+    SideBarWidth = 220,
+    ScrollBarEnabled = true
+})
 
-safeConnect(speedBtn, function()
-    local char = LP.Character
-    if char then
-        local hum = char:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.WalkSpeed = 50
-            speedBtn.Text = "速度加速 (50)"
-        end
-    end
-end)
+Window:Tag({
+    Title = "v1.6.4",
+    Color = Color3.fromHex("#30ff6a")
+})
+Window:Tag({
+    Title = "UI Library",
+    --Color = Color3.fromHex("#30ff6a")
+})
 
-safeConnect(jumpBtn, function()
-    local char = LP.Character
-    if char then
-        local hum = char:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.JumpPower = 100
-            jumpBtn.Text = "跳跃高度 (100)"
-        end
-    end
-end)
+Window:CreateTopbarButton("theme-switcher", "moon", function()
+    WindUI:SetTheme(WindUI:GetCurrentTheme() == "Dark" and "Light" or "Dark")
+    WindUI:Notify({
+        Title = "Theme Changed",
+        Content = "Current theme: "..WindUI:GetCurrentTheme(),
+        Duration = 2
+    })
+end, 990)
 
-safeConnect(infJumpBtn, function()
-    _G.InfJumpEnabled = not _G.InfJumpEnabled
-    infJumpBtn.Text = _G.InfJumpEnabled and "无限跳跃 (开启)" or "无限跳跃"
-end)
-
-UIS.JumpRequest:Connect(function()
-    if _G.InfJumpEnabled then
-        local char = LP.Character
-        if char then
-            local hum = char:FindFirstChildOfClass("Humanoid")
-            if hum then
-                hum:ChangeState(Enum.HumanoidStateType.Jumping)
-            end
-        end
-    end
-end)
-
-safeConnect(noclipBtn, function()
-    _G.NoClipEnabled = not _G.NoClipEnabled
-    noclipBtn.Text = _G.NoClipEnabled and "穿墙模式 (开启)" or "穿墙模式"
-    
-    if _G.NoClipEnabled then
-        coroutine.wrap(function()
-            while _G.NoClipEnabled and task.wait(0.1) do
-                local char = LP.Character
-                if char then
-                    for _, part in ipairs(char:GetDescendants()) do
-                        if part:IsA("BasePart") then
-                            part.CanCollide = false
-                        end
-                    end
-                end
-            end
-        end)()
-    end
-end)
-
-safeConnect(flyBtn, function()
-    _G.FlyEnabled = not _G.FlyEnabled
-    flyBtn.Text = _G.FlyEnabled and "飞行模式 (开启)" or "飞行模式"
-    
-    if _G.FlyEnabled then
-        local char = LP.Character
-        if char then
-            local root = char:FindFirstChild("HumanoidRootPart")
-            if root then
-                local bg = Instance.new("BodyGyro", root)
-                bg.MaxTorque = Vector3.new(0, 0, 0)
-                
-                local bv = Instance.new("BodyVelocity", root)
-                bv.Velocity = Vector3.new(0, 0, 0)
-                bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-                
-                coroutine.wrap(function()
-                    while _G.FlyEnabled and task.wait() do
-                        local cam = workspace.CurrentCamera.CFrame
-                        local move = Vector3.new()
-                        
-                        if UIS:IsKeyDown(Enum.KeyCode.W) then move = move + cam.LookVector end
-                        if UIS:IsKeyDown(Enum.KeyCode.S) then move = move - cam.LookVector end
-                        if UIS:IsKeyDown(Enum.KeyCode.A) then move = move - cam.RightVector end
-                        if UIS:IsKeyDown(Enum.KeyCode.D) then move = move + cam.RightVector end
-                        if UIS:IsKeyDown(Enum.KeyCode.Space) then move = move + Vector3.new(0, 1, 0) end
-                        if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then move = move + Vector3.new(0, -1, 0) end
-                        
-                        if move.Magnitude > 0 then
-                            bv.Velocity = move.Unit * 50
-                        else
-                            bv.Velocity = Vector3.new(0, 0, 0)
-                        end
-                    end
-                    
-                    if bg then bg:Destroy() end
-                    if bv then bv:Destroy() end
-                end)()
-            end
-        end
-    else
-        local char = LP.Character
-        if char then
-            local root = char:FindFirstChild("HumanoidRootPart")
-            if root then
-                local bv = root:FindFirstChild("BodyVelocity")
-                if bv then bv:Destroy() end
-            end
-        end
-    end
-end)
-
--- 页签切换
-local pages = {
-    [infoTab] = InfoPage,
-    [func1Tab] = FeaturePage1,
-    [func2Tab] = ContentFrame,
-    [func3Tab] = ContentFrame
+local Tabs = {
+    Main = Window:Section({ Title = "loc:FEATURES", Opened = true }),
+    Settings = Window:Section({ Title = "loc:SETTINGS", Opened = true }),
+    Utilities = Window:Section({ Title = "loc:UTILITIES", Opened = true })
 }
 
-for tab, btn in pairs(TabBtns) do
-    safeConnect(btn, function()
-        InfoPage.Visible = false
-        FeaturePage1.Visible = false
-        
-        if pages[btn] then
-            pages[btn].Visible = true
+local TabHandles = {
+    Elements = Tabs.Main:Tab({ Title = "loc:UI_ELEMENTS", Icon = "layout-grid" }),
+    Appearance = Tabs.Settings:Tab({ Title = "loc:APPEARANCE", Icon = "brush" }),
+    Config = Tabs.Utilities:Tab({ Title = "loc:CONFIGURATION", Icon = "settings" })
+}
+
+TabHandles.Elements:Paragraph({
+    Title = "Interactive Components",
+    Desc = "Explore WindUI's powerful elements",
+    Image = "component",
+    ImageSize = 20,
+    Color = "White",
+})
+
+TabHandles.Elements:Divider()
+
+local toggleState = false
+local featureToggle = TabHandles.Elements:Toggle({
+    Title = "Enable Advanced Features",
+    Desc = "Unlocks additional functionality",
+    Value = false,
+    Callback = function(state) 
+        toggleState = state
+        WindUI:Notify({
+            Title = "Features",
+            Content = state and "Features Enabled" or "Features Disabled",
+            Icon = state and "check" or "x",
+            Duration = 2
+        })
+    end
+})
+
+local intensitySlider = TabHandles.Elements:Slider({
+    Title = "Effect Intensity",
+    Desc = "Adjust the effect strength",
+    Value = { Min = 0, Max = 100, Default = 50 },
+    Callback = function(value)
+        print("Intensity set to:", value)
+    end
+})
+
+local modeDropdown = TabHandles.Elements:Dropdown({
+    Title = "Select Mode",
+    Values = { "Standard", "Advanced", "Expert" },
+    Value = "Standard",
+    Callback = function(option)
+        WindUI:Notify({
+            Title = "Mode Changed",
+            Content = "Selected: "..option,
+            Duration = 2
+        })
+    end
+})
+
+TabHandles.Elements:Divider()
+
+TabHandles.Elements:Button({
+    Title = "Show Notification",
+    Icon = "bell",
+    Callback = function()
+        WindUI:Notify({
+            Title = "Hello WindUI!",
+            Content = "This is a sample notification",
+            Icon = "bell",
+            Duration = 3
+        })
+    end
+})
+
+TabHandles.Elements:Colorpicker({
+    Title = "Accent Color",
+    Desc = "Change the UI accent color",
+    Default = Color3.fromHex("#6366f1"),
+    Callback = function(color)
+        WindUI:Notify({
+            Title = "Color Changed",
+            Content = "New accent: "..color:ToHex(),
+            Duration = 2
+        })
+    end
+})
+
+TabHandles.Appearance:Paragraph({
+    Title = "Customize Interface",
+    Desc = "Personalize your experience",
+    Image = "palette",
+    ImageSize = 20,
+    Color = "White"
+})
+
+local themes = {}
+for themeName, _ in pairs(WindUI:GetThemes()) do
+    table.insert(themes, themeName)
+end
+table.sort(themes)
+
+local themeDropdown = TabHandles.Appearance:Dropdown({
+    Title = "loc:THEME_SELECT",
+    Values = themes,
+    Value = "Dark",
+    Callback = function(theme)
+        WindUI:SetTheme(theme)
+        WindUI:Notify({
+            Title = "Theme Applied",
+            Content = theme,
+            Icon = "palette",
+            Duration = 2
+        })
+    end
+})
+
+local transparencySlider = TabHandles.Appearance:Slider({
+    Title = "loc:TRANSPARENCY",
+    Value = { 
+        Min = 0,
+        Max = 1,
+        Default = 0.2,
+    },
+    Step = 0.1,
+    Callback = function(value)
+        Window:ToggleTransparency(tonumber(value) > 0)
+        WindUI.TransparencyValue = tonumber(value)
+    end
+})
+
+TabHandles.Appearance:Toggle({
+    Title = "Enable Dark Mode",
+    Desc = "Use dark color scheme",
+    Value = true,
+    Callback = function(state)
+        WindUI:SetTheme(state and "Dark" or "Light")
+        themeDropdown:Select(state and "Dark" or "Light")
+    end
+})
+
+TabHandles.Appearance:Button({
+    Title = "Create New Theme",
+    Icon = "plus",
+    Callback = function()
+        Window:Dialog({
+            Title = "Create Theme",
+            Content = "This feature is coming soon!",
+            Buttons = {
+                {
+                    Title = "OK",
+                    Variant = "Primary"
+                }
+            }
+        })
+    end
+})
+
+TabHandles.Config:Paragraph({
+    Title = "Configuration Manager",
+    Desc = "Save and load your settings",
+    Image = "save",
+    ImageSize = 20,
+    Color = "White"
+})
+
+local configName = "default"
+local configFile = nil
+local MyPlayerData = {
+    name = "Player1",
+    level = 1,
+    inventory = { "sword", "shield", "potion" }
+}
+
+TabHandles.Config:Input({
+    Title = "Config Name",
+    Value = configName,
+    Callback = function(value)
+        configName = value
+    end
+})
+
+local ConfigManager = Window.ConfigManager
+if ConfigManager then
+    ConfigManager:Init(Window)
+    
+    TabHandles.Config:Button({
+        Title = "loc:SAVE_CONFIG",
+        Icon = "save",
+        Variant = "Primary",
+        Callback = function()
+            configFile = ConfigManager:CreateConfig(configName)
+            
+            configFile:Register("featureToggle", featureToggle)
+            configFile:Register("intensitySlider", intensitySlider)
+            configFile:Register("modeDropdown", modeDropdown)
+            configFile:Register("themeDropdown", themeDropdown)
+            configFile:Register("transparencySlider", transparencySlider)
+            
+            configFile:Set("playerData", MyPlayerData)
+            configFile:Set("lastSave", os.date("%Y-%m-%d %H:%M:%S"))
+            
+            if configFile:Save() then
+                WindUI:Notify({ 
+                    Title = "loc:SAVE_CONFIG", 
+                    Content = "Saved as: "..configName,
+                    Icon = "check",
+                    Duration = 3
+                })
+            else
+                WindUI:Notify({ 
+                    Title = "Error", 
+                    Content = "Failed to save config",
+                    Icon = "x",
+                    Duration = 3
+                })
+            end
         end
-    end)
+    })
+
+    TabHandles.Config:Button({
+        Title = "loc:LOAD_CONFIG",
+        Icon = "folder",
+        Callback = function()
+            configFile = ConfigManager:CreateConfig(configName)
+            local loadedData = configFile:Load()
+            
+            if loadedData then
+                if loadedData.playerData then
+                    MyPlayerData = loadedData.playerData
+                end
+                
+                local lastSave = loadedData.lastSave or "Unknown"
+                WindUI:Notify({ 
+                    Title = "loc:LOAD_CONFIG", 
+                    Content = "Loaded: "..configName.."\nLast save: "..lastSave,
+                    Icon = "refresh-cw",
+                    Duration = 5
+                })
+                
+                TabHandles.Config:Paragraph({
+                    Title = "Player Data",
+                    Desc = string.format("Name: %s\nLevel: %d\nInventory: %s", 
+                        MyPlayerData.name, 
+                        MyPlayerData.level, 
+                        table.concat(MyPlayerData.inventory, ", "))
+                })
+            else
+                WindUI:Notify({ 
+                    Title = "Error", 
+                    Content = "Failed to load config",
+                    Icon = "x",
+                    Duration = 3
+                })
+            end
+        end
+    })
+else
+    TabHandles.Config:Paragraph({
+        Title = "Config Manager Not Available",
+        Desc = "This feature requires ConfigManager",
+        Image = "alert-triangle",
+        ImageSize = 20,
+        Color = "White"
+    })
 end
 
--- ===== 可拖动的迷你开关按钮 =====
-local ToggleBtn = Instance.new("TextButton")
-ToggleBtn.Name = "ToggleButton"
-ToggleBtn.Size = UDim2.new(0, 80, 0, 30) -- 缩小尺寸
-ToggleBtn.Position = UDim2.new(0, 20, 0, 20)
-ToggleBtn.Text = "打开脚本"
-ToggleBtn.Font = Enum.Font.GothamBold
-ToggleBtn.TextSize = 12 -- 缩小字体
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(80, 100, 180)
-ToggleBtn.TextColor3 = Color3.new(1, 1, 1)
-ToggleBtn.Parent = Main
 
-local ToggleCorner = Instance.new("UICorner")
-ToggleCorner.CornerRadius = UDim.new(0, 8)
-ToggleCorner.Parent = ToggleBtn
-
--- 修复后的拖动逻辑（不影响点击）
-local btnDragging, btnDragStart, btnStartPos
-
-local function handleDrag(input)
-    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-        btnDragging = true
-        btnDragStart = input.Position
-        btnStartPos = ToggleBtn.Position
-        
-        local conn
-        conn = input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                btnDragging = false
-                if conn then conn:Disconnect() end
+local footerSection = Window:Section({ Title = "WindUI " .. WindUI.Version })
+TabHandles.Config:Paragraph({
+    Title = "Created with ❤️",
+    Desc = "github.com/Footagesus/WindUI",
+    Image = "github",
+    ImageSize = 20,
+    Color = "Grey",
+    Buttons = {
+        {
+            Title = "Copy Link",
+            Icon = "copy",
+            Variant = "Tertiary",
+            Callback = function()
+                setclipboard("https://github.com/Footagesus/WindUI")
+                WindUI:Notify({
+                    Title = "Copied!",
+                    Content = "GitHub link copied to clipboard",
+                    Duration = 2
+                })
             end
-        end)
-    end
-end
+        }
+    }
+})
 
-ToggleBtn.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        -- 延迟一小段时间再判断是否是拖动
-        local startTime = tick()
-        local startPos = input.Position
-        
-        local dragCheck
-        dragCheck = game:GetService("RunService").Heartbeat:Connect(function()
-            if tick() - startTime > 0.1 then
-                dragCheck:Disconnect()
-                if (input.Position - startPos).Magnitude > 5 then
-                    handleDrag(input)
-                end
-            end
-        end)
+Window:OnClose(function()
+    print("Window closed")
+    
+    if ConfigManager and configFile then
+        configFile:Set("playerData", MyPlayerData)
+        configFile:Set("lastSave", os.date("%Y-%m-%d %H:%M:%S"))
+        configFile:Save()
+        print("Config auto-saved on close")
     end
 end)
 
-UIS.InputChanged:Connect(function(input)
-    if btnDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - btnDragStart
-        ToggleBtn.Position = btnStartPos + UDim2.new(0, delta.X, 0, delta.Y)
-    end
+Window:OnDestroy(function()
+    print("Window destroyed")
 end)
-
--- 主窗口拖动逻辑（修复版）
-local frameDragging, frameDragStart, frameStartPos
-
-TopBar.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        local startTime = tick()
-        local startPos = input.Position
-        
-        local dragCheck
-        dragCheck = game:GetService("RunService").Heartbeat:Connect(function()
-            if tick() - startTime > 0.1 then
-                dragCheck:Disconnect()
-                if (input.Position - startPos).Magnitude > 5 then
-                    frameDragging = true
-                    frameDragStart = input.Position
-                    frameStartPos = Frame.Position
-                    
-                    local conn
-                    conn = input.Changed:Connect(function()
-                        if input.UserInputState == Enum.UserInputState.End then
-                            frameDragging = false
-                            if conn then conn:Disconnect() end
-                        end
-                    end)
-                end
-            end
-        end)
-    end
-end)
-
-UIS.InputChanged:Connect(function(input)
-    if frameDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - frameDragStart
-        Frame.Position = frameStartPos + UDim2.new(0, delta.X, 0, delta.Y)
-    end
-end)
-
--- 切换显示/隐藏（使用安全连接）
-safeConnect(ToggleBtn, function()
-    Frame.Visible = not Frame.Visible
-    ToggleBtn.Text = Frame.Visible and "关闭脚本" or "打开脚本"
-end)
-
--- 初始显示信息页
-InfoPage.Visible = true
-FeaturePage1.Visible = false
-
-print("Chmao脚本中心已加载！")
